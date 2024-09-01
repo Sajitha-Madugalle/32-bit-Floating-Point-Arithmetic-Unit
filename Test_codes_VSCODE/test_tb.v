@@ -1,4 +1,5 @@
-'timescale 1ns/1ps
+`timescale 1ns/1ps
+`include "test.v"
 
 module test_tb;
     reg A;
