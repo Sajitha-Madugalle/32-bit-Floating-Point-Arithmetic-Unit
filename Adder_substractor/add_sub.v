@@ -19,7 +19,10 @@ module add_sub(
         end else begin
             // Step 1: Extract sign, exponent, and mantissa
             signA = A[31];
-            signB = B[31] ^ addsub; // Invert sign of B if subtracting
+            
+            if (addsub) signB = ~B[31]; // Invert sign of B if subtracting
+            else signB = B[31];
+
             expA = A[30:23];
             expB = B[30:23];
             mantA = {2'b01, A[22:0]}; // Add leading bits to mantissa
