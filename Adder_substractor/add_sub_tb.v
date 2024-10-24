@@ -45,9 +45,11 @@ module add_sub_tb;
         A = 32'h3FA00000; 
         B = 32'h40200000;  
 
-        #8;     
+        #8;
+        addsub = 1;     
         A = 32'h42C80000;
         B = 32'h3E800000;
+        #8 addsub = 0;
 
         #8;     
         A = 32'h42C80000;  
@@ -58,6 +60,7 @@ module add_sub_tb;
         B = 32'hbfc74b5a;
 
         #8;
+        addsub = 1;
         A = 32'h3fa00000; 
         B = 32'h3fa00000;
 
