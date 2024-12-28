@@ -1,0 +1,61 @@
+`timescale 10ns / 1ns
+`include "ALU_top.v"
+`include "divider.v"
+`include "multiplier.v"
+`include "add_sub.v"
+`include "instructions.v"
+
+module ALU_top_tb;
+    // Testbench signals
+    reg loadData;     // Inputs to the ALU
+    reg clk;
+    reg control, reset;       // Control and reset signals
+    reg [1:0] select;         // Select signal for operations
+    wire [31:0] out;          // Output from the ALU
+    wire exception;           // Exception flag
+    wire zeroDiv;             // Zero division flag
+
+    // Instantiate the ALU_top module
+    ALU_top uut (
+
+        .loadData(loadData),
+        .control(control),
+        .reset(reset),
+        .select(select),
+        .out(out),
+        .exception(exception),
+        .zeroDiv(zeroDiv)
+    );
+
+    // Clock generation for control signal (50Hz = 20ms period, or 200,000 clock cycles at 10ns time scale)
+    initial begin
+        control = 0;
+        forever #50 control = ~control;  // Toggle every 100 cycles (1µs per half-cycle at 10ns scale)
+    end
+
+    // Test procedure
+    initial begin
+        $dumpfile("ALU_top_tb.vcd");
+        $dumpvars(0, ALU_top_tb);
+
+        // Initialize inputs
+
+        // Reset signal
+        #5 reset = 1;
+        #5 reset = 0;
+
+
+
+    end
+
+    // Monitor outputs
+initial begin
+    // Monitor the signals at every positive edge of the control signal
+    forever @(posedge control) begin
+        #10
+        $display("%0t %b %h %b %b", 
+                 $time, select, out, exception, zeroDiv);
+    end
+end
+
+endmodule

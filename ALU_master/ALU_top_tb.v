@@ -1,96 +1,102 @@
-`timescale 10ns / 1ns
-`include "ALU_top.v"
-`include "divider.v"
-`include "multiplier.v"
+`timescale 1ns / 1ps
 `include "add_sub.v"
+`include "multiplier.v"
+`include "divider.v"
+`include "instructions.v"
+`include "ALU_top.v"
+`include "hexDisplay.v"
 
 module ALU_top_tb;
-    // Testbench signals
-    reg [31:0] A, B;          // Inputs to the ALU
-    reg control, reset;       // Control and reset signals
-    reg [1:0] select;         // Select signal for operations
-    wire [31:0] out;          // Output from the ALU
-    wire exception;           // Exception flag
-    wire zeroDiv;             // Zero division flag
+    // Clock and control signals
+    reg clk;
+    reg loadData;
+    reg control;
+    reg reset;
+    reg [1:0] select;
+    reg[6:0] digit7;      // Seven-segment display for most significant digit
+    reg [6:0] digit6;      // Seven-segment display
+    reg [6:0] digit5;      // Seven-segment display
+    reg [6:0] digit4;      // Seven-segment display
+    reg [6:0] digit3;      // Seven-segment display
+    reg [6:0] digit2;      // Seven-segment display
+    reg [6:0] digit1;      // Seven-segment display
+    reg [6:0] digit0;
+
+    // Outputs from the ALU_top module
+    wire [31:0] out;
+    wire exception;
+    wire zeroDiv;
+
+    // Include all modules
+
 
     // Instantiate the ALU_top module
     ALU_top uut (
-        .A(A),
-        .B(B),
+        .clk(clk),
+        .loadData(loadData),
         .control(control),
         .reset(reset),
         .select(select),
-        .out(out),
         .exception(exception),
         .zeroDiv(zeroDiv)
     );
 
-    // Clock generation for control signal (50Hz = 20ms period, or 200,000 clock cycles at 10ns time scale)
+    // Clock generation: 50 Hz (20 ms period)
     initial begin
-        control = 0;
-        forever #50 control = ~control;  // Toggle every 100 cycles (1µs per half-cycle at 10ns scale)
+        clk = 0;
+        forever #10 clk = ~clk; // Toggle every 10 ms
     end
 
-    // Test procedure
+    // Simulation initialization
     initial begin
+        // Initialize variables
+        loadData = 0;
+        control = 0;
+        reset = 0;
+        select = 2'b00; // Default to addition
+
+        // Dump waveform
         $dumpfile("ALU_top_tb.vcd");
         $dumpvars(0, ALU_top_tb);
 
-        // Initialize inputs
+        // Reset the design
+        reset = 1;
+        #20; // Wait for 20 ns
         reset = 0;
-        A = 32'h00000000;
-        B = 32'h00000000;
-        select = 2'b00;
+        #50
+        // Load first data and perform addition
+        loadData = 1;
+        #1000 loadData = 0;
+        #100 control = 1;
+        #1000 control = 0;
 
-        // Reset signal
-        #5 reset = 1;
-        #5 reset = 0;
 
-        // Test addition (++,+-,-+,--)
-        select = 2'b00; // Add
-        #100 A = 32'h401762b7; B = 32'h43b69f5c; // 1.0 + 2.0
-        #100 A = 32'h401762b7; B = 32'hc3b69f5c; // 1.0 + (-2.0)
-        #100 A = 32'hBF800000; B = 32'h40000000; // -1.0 + 2.0
-        #100 A = 32'hBF800000; B = 32'hC0000000; // -1.0 + (-2.0)
+        // Wait and perform subtraction
+        #100
+        select = 2'b01;
+        loadData = 1;
+        #1000 loadData = 0;
+        #100 control = 1;
+        #1000 control = 0;
 
-        // Test subtraction (++,+-,-+,--)
-        select = 2'b01; // Sub
-        #100 A = 32'h3F800000; B = 32'h40000000; // 1.0 - 2.0
-        #100 A = 32'h3F800000; B = 32'hC0000000; // 1.0 - (-2.0)
-        #100 A = 32'hBF800000; B = 32'h40000000; // -1.0 - 2.0
-        #100 A = 32'hBF800000; B = 32'hC0000000; // -1.0 - (-2.0)
+        // Wait and perform multiplication
+        #100
+        select = 2'b10;
+        loadData = 1;
+        #1000 loadData = 0;
+        #100 control = 1;
+        #1000 control = 0;
 
-        // Test multiplication (++,+-,-+,--)
-        select = 2'b10; // Mul
-        #100 A = 32'h3F800000; B = 32'h40000000; // 1.0 * 2.0
-        #100 A = 32'h3F800000; B = 32'hC0000000; // 1.0 * (-2.0)
-        #100 A = 32'hBF800000; B = 32'h40000000; // -1.0 * 2.0
-        #100 A = 32'hBF800000; B = 32'hC0000000; // -1.0 * (-2.0)
+        // Wait and perform division
+        #100
+        select = 2'b11;
+        loadData = 1;
+        #1000 loadData = 0;
+        #100 control = 1;
+        #1000 control = 0;
 
-        // Test division (++,+-,-+,--)
-        select = 2'b11; // Div
-        #100 A = 32'h3F800000; B = 32'h40000000; // 1.0 / 2.0
-        #100 A = 32'h3F800000; B = 32'hC0000000; // 1.0 / (-2.0)
-        #100 A = 32'hBF800000; B = 32'h40000000; // -1.0 / 2.0
-        #100 A = 32'hBF800000; B = 32'hC0000000; // -1.0 / (-2.0)
-
-        // Test exception cases
-        #100 A = 32'h7F800000; B = 32'h7F800000; // Inf + Inf (exception expected)
-        
-        // Test zero division
-        #100 A = 32'h3F800000; B = 32'h00000000; // 1.0 / 0.0 (zero division expected)
-
-        #200 $finish; // End simulation
+        // Wait and finish simulation
+        #200;
+        $finish;
     end
-
-    // Monitor outputs
-initial begin
-    // Monitor the signals at every positive edge of the control signal
-    forever @(posedge control) begin
-        #10
-        $display("%0t %b %h %h %h %b %b", 
-                 $time, select, A, B, out, exception, zeroDiv);
-    end
-end
-
 endmodule

@@ -10,6 +10,8 @@ module add_sub(
     reg signA, signB, signOut;        // Signs
     reg [7:0] expDiff;                // Exponent difference
     reg operation;                    // Actual operation: add (0) / subtract (1)
+	 
+	 integer i;
 
     // Sequential logic triggered by control or reset
     always @(posedge control or posedge reset) begin
@@ -60,10 +62,10 @@ module add_sub(
                 mantOut = mantOut >> 1;
                 expOut = expOut + 1;
             end else begin
-                while (mantOut[23] == 0 && expOut > 0) begin
-                    mantOut = mantOut << 1;
-                    expOut = expOut - 1;
-                end
+					for (i = 0; i < 23 && mantOut[23] == 0 && expOut > 0; i = i + 1) begin
+						mantOut = mantOut << 1;
+						expOut = expOut - 1;
+					end
             end
 
             // Step 5: Assemble the final IEEE 754 result

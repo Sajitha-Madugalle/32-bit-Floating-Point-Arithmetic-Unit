@@ -76,10 +76,10 @@ module divider (
                 quotient = NRDivisor(mant_DD, mant_DS);
 
                 // Step 5: Normalize quotient
-                while (quotient[23] == 0 && exp_out > 0) begin
-                    quotient = quotient << 1;
-                    exp_out = exp_out - 1;
-                end
+						for (i = 0; i < 23 && quotient[23] == 0 && exp_out > 0; i = i + 1) begin
+							 quotient = quotient << 1;
+							 exp_out = exp_out - 1;
+						end
 
                 // Step 6: Handle overflow/underflow
                 if (exp_out >= 255) begin
