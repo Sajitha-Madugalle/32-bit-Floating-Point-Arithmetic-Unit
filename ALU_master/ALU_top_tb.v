@@ -65,35 +65,230 @@ module ALU_top_tb;
         reset = 0;
         #50
         // Load first data and perform addition
+        #10
+        select = 2'b00;
         loadData = 1;
-        #1000 loadData = 0;
-        #100 control = 1;
-        #1000 control = 0;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
 
+        #10
+        select = 2'b00;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
 
-        // Wait and perform subtraction
-        #100
+        #10
+        select = 2'b00;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b00;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
         select = 2'b01;
         loadData = 1;
-        #1000 loadData = 0;
-        #100 control = 1;
-        #1000 control = 0;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
 
-        // Wait and perform multiplication
-        #100
+        #10
+        select = 2'b01;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b01;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b01;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
         select = 2'b10;
         loadData = 1;
-        #1000 loadData = 0;
-        #100 control = 1;
-        #1000 control = 0;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
 
-        // Wait and perform division
-        #100
+        #10
+        select = 2'b10;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b10;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b10;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
         select = 2'b11;
         loadData = 1;
-        #1000 loadData = 0;
-        #100 control = 1;
-        #1000 control = 0;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b00;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b01;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b10;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b00;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b01;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b10;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b00;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b01;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b10;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
+        #10
+        select = 2'b11;
+        loadData = 1;
+        #100 loadData = 0;
+        #10 control = 1;
+        #100 control = 0;
+
 
         // Wait and finish simulation
         #200;
