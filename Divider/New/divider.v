@@ -10,41 +10,48 @@ module divider (
 
     // Internal signals
     reg [7:0] exp_dd, exp_ds, exp_out;
-    reg [23:0] mant_dd, mant_ds, mant_out;
+    reg [23:0] mant_dd, mant_ds;
+    reg [24:0] mant_out;
     reg sign_dd, sign_ds, sign_out;
     integer i;
 
-    function [47:0] non_restoring_division;
-        input [23:0] Mant_DD;
-        input [23:0] Mant_DS;
+    function [24:0] performDiv;
+        input [23:0] DD; // Dividend (24-bit)
+        input [23:0] DS; // Divisor (24-bit)
+
+        reg [48:0] dividend; // Extended dividend to handle fraction bits
+        reg [48:0] divisor;  // Extended divisor to align for subtraction
+        reg [24:0] quotient; // Result (25-bit)
         integer i;
-        reg [47:0] A, Q, M;
+
         begin
-            Q = {Mant_DD, 24'b0};
-            M = {Mant_DS, 24'b0};
-            A = 48'b0;
+            // Initialize dividend and divisor
+            dividend = {DD, 25'b0}; // Append 25 zeros to dividend for fractional bits
+            divisor = {DS, 25'b0}; // Align divisor with the dividend
+            quotient = 25'b0;      // Initialize quotient to 0
 
-            for (i = 0; i < 24; i = i + 1) begin
-                A = {A[46:0], Q[47]};
-                Q = {Q[46:0], 1'b0};
-
-                A = A - M;
-                if (A[47]) begin
-                    A = A + M;
-                    Q[0] = 1'b0;
+            // Perform long division for 25 steps (1 integer + 24 fraction bits)
+            for (i = 24; i >= 0; i = i - 1) begin
+                if (dividend >= divisor) begin
+                    dividend = dividend - divisor;
+                    quotient[i] = 1'b1; // Set current quotient bit to 1
                 end else begin
-                    Q[0] = 1'b1;
+                    quotient[i] = 1'b0; // Set current quotient bit to 0
                 end
+                divisor = divisor >> 1; // Shift divisor right by 1 bit
             end
-            non_restoring_division = Q;
+
+            // Return the final quotient
+            performDiv = quotient;
         end
     endfunction
 
+    // Always block for control and reset logic
     always @(posedge control or posedge reset) begin
         if (reset) begin
-            out <= 0;
-            exception <= 0;
-            zeroDiv <= 0;
+            out <= 32'b0;
+            exception <= 1'b0;
+            zeroDiv <= 1'b0;
         end else begin
             // Extract fields
             sign_dd = DD[31];
@@ -54,20 +61,19 @@ module divider (
             mant_dd = {1'b1, DD[22:0]}; // Normalized mantissa
             mant_ds = {1'b1, DS[22:0]}; // Normalized mantissa
 
-            $display("Debug: Extracted Fields -> sign_dd=%b, sign_ds=%b, exp_dd=%h, exp_ds=%h, mant_dd=%h, mant_ds=%h",
-                sign_dd, sign_ds, exp_dd, exp_ds, mant_dd, mant_ds);
-
             // Sign of the result
             sign_out = sign_dd ^ sign_ds;
 
             // Check for division by zero
             if (DS == 0) begin
                 zeroDiv <= 1;
-                if (DD == 0)
+                if (DD == 0) begin
                     out <= 32'hFFC00000; // NaN
                     exception <= 1;
-                else
-                    out <= 32'h7F800000; // Infinity
+                end else begin
+                    out <= {sign_out, 8'hFF, 23'b0}; // Infinity
+                    exception <= 1;
+                end
             end else if (DD == 0) begin
                 zeroDiv <= 0;
                 exception <= 0;
@@ -78,23 +84,15 @@ module divider (
 
                 // Exponent calculation
                 exp_out = exp_dd - exp_ds + 127;
-                mant_out = non_restoring_division(mant_dd, mant_ds);
+                mant_out = performDiv(mant_dd, mant_ds);
 
-                $display("Debug: Before Normalization -> exp_out=%h, mant_out=%h", exp_out, mant_out);
-
-                for (i = 0; i < 24; i = i + 1) begin
-                    if (mant_out[47] != 1 && exp_out > 0) begin
-                        mant_out = mant_out << 1;
-                        exp_out = exp_out - 1;
-                    end
+                if (mant_out[24] == 1) begin
+                    out <= {sign_out, exp_out[7:0], mant_out[23:1]};
+                end else begin
+                    exp_out = exp_out - 1;
+                    out <= {sign_out, exp_out[7:0], mant_out[22:0]};
                 end
-
-                $display("Debug: After Normalization -> exp_out=%h, mant_out=%h", exp_out, mant_out);
             end
-            // Pack the result
-            out <= {sign_out, exp_out[7:0], mant_out[46:24]};
-            $display("Debug: Packed Result -> out=%h", out);
         end
     end
-
 endmodule

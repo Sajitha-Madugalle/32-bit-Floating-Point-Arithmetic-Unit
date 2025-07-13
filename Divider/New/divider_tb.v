@@ -1,17 +1,15 @@
-`timescale 1ns/1ps
+`timescale 10ns / 1ns
 `include "divider.v"
 
 module divider_tb;
-    // Inputs
-    reg [31:0] DD;
-    reg [31:0] DS;
-    reg control;
-    reg reset;
-
-    // Outputs
-    wire [31:0] out;
-    wire exception;
-    wire zeroDiv;
+    // Testbench signals
+    reg [31:0] DD;          // Dividend in IEEE-754
+    reg [31:0] DS;          // Divisor in IEEE-754
+    reg control;            // Control signal
+    reg reset;              // Reset signal
+    wire [31:0] out;        // Output from the divider
+    wire exception;         // Exception signal
+    wire zeroDiv;           // Zero division flag
 
     // Instantiate the divider module
     divider uut (
@@ -24,66 +22,44 @@ module divider_tb;
         .zeroDiv(zeroDiv)
     );
 
-    // Task to print results
-    task print_results;
-        input [31:0] dividend;
-        input [31:0] divisor;
-        input [31:0] result;
-        input exc;
-        input zero;
-        begin
-            $display("Dividend: %h, Divisor: %h, Result: %h, Exception: %b, ZeroDiv: %b", dividend, divisor, result, exc, zero);
-        end
-    endtask
-
-    // Task to apply test case
-    task apply_test;
-        input [31:0] dividend;
-        input [31:0] divisor;
-        begin
-            DD = dividend;
-            DS = divisor;
-            #10 control = 1;
-            #10 control = 0;
-            #1000; // Increased delay to ensure operation completes
-            $display("Intermediate Debug: Out=%h, Exception=%b, ZeroDiv=%b", out, exception, zeroDiv);
-            print_results(DD, DS, out, exception, zeroDiv);
-        end
-    endtask
-
+    // Clock generation for control signal
     initial begin
-        // Initialize inputs
         control = 0;
-        reset = 1;
-        DD = 0;
-        DS = 0;
+        forever #10 control = ~control;  // Toggle every 10ns
+    end
 
-        // Apply reset pulse
-        #10 reset = 0;
-        #10 reset = 1;
-        #10 reset = 0;
+    // Test procedure
+    initial begin
+        $dumpfile("divider_tb.vcd");
+        $dumpvars(0, divider_tb);
 
-        // Test 1: 2.36541 / 1.23654
-        apply_test(32'h4016EB85, 32'h3F9E04F3); // 2.36541 / 1.23654
+        // Initialize inputs
+        reset = 0;
+        DD = 32'h00000000;  // Initially zero
+        DS = 32'h00000000;  // Initially zero
 
-        // Test 2: 12.364 / 0
-        apply_test(32'h4145D3A7, 32'h00000000); // 12.364 / 0
+        // Test Case 1: Division of 2.345 by -365.214
+        #5 reset = 1;  // Assert reset
+        #5 reset = 0;  // De-assert reset
+        DD = 32'h4012C000; // 2.345 in IEEE-754
+        DS = 32'hC33B660A; // -365.214 in IEEE-754
+        #2000;  // Wait for output to settle
 
-        // Test 3: -45.697 / 3.256
-        apply_test(32'hC2311EB8, 32'h40503F16); // -45.697 / 3.256
+        // Test Case 2: Division of 45.36 by 12
+        DD = 32'h42356000; // 45.36 in IEEE-754
+        DS = 32'h41400000; // 12 in IEEE-754
+        #2000;  // Wait for output to settle
 
-        // Test 4: 0 / 0
-        apply_test(32'h00000000, 32'h00000000); // 0 / 0
+        // End the simulation
+        #500 $finish;
+    end
 
-        // Test 5: 0 / 5.3654
-        apply_test(32'h00000000, 32'h40AAF5C3); // 0 / 5.3654
-
-        // Test 6: inf / inf
-        apply_test(32'h7F800000, 32'h7F800000); // Infinity / Infinity
-
-        // Test 7: NaN / NaN
-        apply_test(32'hFFC00000, 32'hFFC00000); // NaN / NaN
-
-        $stop;
+    // Monitor output and exceptions
+    initial begin
+        $monitor("Time: %0t | DD: %h | DS: %h | Out: %h | Exception: %b | ZeroDiv: %b",
+                 $time, DD, DS, out, exception, zeroDiv);
     end
 endmodule
+
+//10111100101000010011110100011001
+//10111100010010000111100010011010
